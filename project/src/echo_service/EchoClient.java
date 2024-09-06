@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class EchoClient {
-    public static void main(String[] args) throws Exception{ //is a string array
+    public static void main(String[] args) throws Exception{
         if(args.length != 2) {
             System.out.println("Please specify <serverIP> and <serverPort>");
             return;
@@ -22,21 +22,15 @@ public class EchoClient {
 
         int serverPort = Integer.parseInt(args[1]);
 
-        DatagramSocket socket = new DatagramSocket();
+        DatagramSocket socket = new DatagramSocket(); //new socket
 
-        DatagramPacket request = new DatagramPacket(
-                    message.getBytes(),
-                    message.getBytes().length,
-                        serverIP,
-                        serverPort
-        );
-        socket.send(request);
-            DatagramPacket reply = new DatagramPacket(
-                    new byte[1024],
-                    1024
-            );
+        DatagramPacket request = new DatagramPacket(new byte[0], 0, serverIP, serverPort);
+        socket.send(request); //send empty packet
+
+            DatagramPacket reply = new DatagramPacket(new byte[4], 4); //server sends 4 byte int
             socket.receive(reply);
-            socket.close();
+            socket.close(); //gets ready to receive empty packet
+
         byte[] serverMessage = Arrays.copyOf(
                         reply.getData(),
                         reply.getLength()
