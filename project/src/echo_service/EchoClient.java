@@ -22,9 +22,6 @@ public class EchoClient {
 
         int serverPort = Integer.parseInt(args[1]);
 
-        Scanner keyboard = new Scanner(System.in);
-        String message = keyboard.nextLine();
-
         DatagramSocket socket = new DatagramSocket();
 
         DatagramPacket request = new DatagramPacket(
