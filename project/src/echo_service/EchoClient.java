@@ -13,13 +13,12 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class EchoClient {
-    public static void main(String[] args) throws Exception{
-        if(args.length != 2) {
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
             System.out.println("Please specify <serverIP> and <serverPort>");
             return;
         }
         InetAddress serverIP = InetAddress.getByName(args[0]);
-
         int serverPort = Integer.parseInt(args[1]);
 
         DatagramSocket socket = new DatagramSocket(); //new socket
@@ -27,43 +26,19 @@ public class EchoClient {
         DatagramPacket request = new DatagramPacket(new byte[0], 0, serverIP, serverPort);
         socket.send(request); //send empty packet
 
-            DatagramPacket reply = new DatagramPacket(new byte[4], 4); //server sends 4 byte int
-            socket.receive(reply);
-            socket.close(); //gets ready to receive empty packet
+        DatagramPacket reply = new DatagramPacket(new byte[4], 4); //server sends 4 byte int
+        socket.receive(reply);
+        socket.close(); //gets ready to receive empty packet
 
-        byte[] serverMessage = Arrays.copyOf(
-                        reply.getData(),
-                        reply.getLength()
-                );
-        System.out.println(new String(serverMessage));
+        ByteBuffer buffer = ByteBuffer.wrap(reply.getData());
+        long secondsSince1900 = buffer.getInt() & 0xFFFFFFFFL;
 
-        byte[] serverMessage = Arrays.copyOf(reply.getData(), reply.getLength());
-        System.out.println("Server response: " + new String(serverMessage));
+        long secondsSince1970 = secondsSince1900 - 2208988800L;
 
+        Instant time = Instant.ofEpochSecond(secondsSince1970);
+        ZonedDateTime dateTime = time.atZone(ZoneId.of("America/New_York"));
 
-
-        // trail and error
-        //handle the 4-byte time packet from the server
-        if (reply.getLength() >= 4) {
-            byte[] timeData = Arrays.copyOfRange(reply.getData(), 0, 4);  // First 4 bytes are the time data
-            ByteBuffer byteBuffer = ByteBuffer.wrap(timeData);
-            long secondsSince1900 = byteBuffer.getInt() & 0xFFFFFFFFL;  // Convert to unsigned 32-bit integer
-
-            // Offset between 1900-01-01 and 1970-01-01 in seconds
-            long secondsBetween1900and1970 = 2208988800L;
-            long secondsSince1970 = secondsSince1900 - secondsBetween1900and1970;
-
-            // Convert to an Instant and then to ZonedDateTime in Eastern Time
-            Instant instant = Instant.ofEpochSecond(secondsSince1970);
-            ZonedDateTime easternTime = instant.atZone(ZoneId.of("America/New_York"));
-
-            // Format the time
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-            String formattedTime = easternTime.format(formatter);
-
-            // Output the result
-            System.out.println("Eastern Time: " + formattedTime);
-
-        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+        System.out.println("Current date and time: " + dateTime.format(formatter));
     }
 }
